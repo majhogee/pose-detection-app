@@ -1,57 +1,54 @@
-module Main exposing (Model, Msg(..), init, main, update, view)
-
+port module Main exposing (Model, Msg(..), init, main, update, view, subscriptions)
 import Browser
 import Html exposing (Attribute, Html, button, div, img, input, text)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (onClick, onInput)
 
 
-
--- MAIN
-
-
-main =
-    Browser.sandbox { init = init, update = update, view = view }
-
-
-
--- MODEL
-
-
 type alias Model =
     { url : String
     , submitted : Bool
     }
+type Msg
+    =  UrlSubmitted
+     |  Change String
 
 
-init : Model
-init =
-    { url = ""
-    , submitted = False
-    }
+ -- MAIN
 
+main =
+    Browser.element { init = init, view = view, update = update, subscriptions = subscriptions }
+
+
+
+init : String -> ( Model, Cmd msg )
+init flags =
+       ( { url = "", submitted = False}
+         , Cmd.none
+       )
 
 
 -- UPDATE
 
 
-type Msg
-    = UrlSubmitted
-    | Change String
-
-
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
     case msg of
         Change newUrl ->
-            { model | url = newUrl }
-
+            (  { model | url = newUrl }, Cmd.none )
         UrlSubmitted ->
-            { model | submitted = True }
+            ( { model | submitted = True }, Cmd.none )
 
 
 
--- urlSubmitted ->
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
 -- VIEW
 
 
