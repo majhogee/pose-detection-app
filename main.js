@@ -4834,38 +4834,82 @@ var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Main$init = function (flags) {
 	return _Utils_Tuple2(
-		{submitted: false, url: ''},
+		{counter: flags.value, error: 'No error', submitted: false, url: ''},
 		elm$core$Platform$Cmd$none);
 };
-var elm$core$Platform$Sub$batch = _Platform_batch;
-var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
-var author$project$Main$subscriptions = function (model) {
-	return elm$core$Platform$Sub$none;
+var author$project$Main$Received = function (a) {
+	return {$: 'Received', a: a};
 };
+var elm$json$Json$Decode$value = _Json_decodeValue;
+var author$project$Main$receiveStuff = _Platform_incomingPort('receiveStuff', elm$json$Json$Decode$value);
+var elm$json$Json$Decode$field = _Json_decodeField;
+var elm$json$Json$Decode$int = _Json_decodeInt;
+var author$project$Main$valueDecoder = A2(elm$json$Json$Decode$field, 'value', elm$json$Json$Decode$int);
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var elm$json$Json$Decode$decodeValue = _Json_run;
+var author$project$Main$subscriptions = function (model) {
+	return author$project$Main$receiveStuff(
+		A2(
+			elm$core$Basics$composeR,
+			elm$json$Json$Decode$decodeValue(author$project$Main$valueDecoder),
+			author$project$Main$Received));
+};
+var elm$core$Basics$identity = function (x) {
+	return x;
+};
+var author$project$Main$sendStuff = _Platform_outgoingPort('sendStuff', elm$core$Basics$identity);
+var elm$json$Json$Encode$string = _Json_wrap;
 var author$project$Main$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'Change') {
-			var newUrl = msg.a;
-			return _Utils_Tuple2(
-				_Utils_update(
+		switch (msg.$) {
+			case 'Change':
+				var newUrl = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{url: newUrl}),
+					elm$core$Platform$Cmd$none);
+			case 'UrlSubmitted':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{submitted: true}),
+					elm$core$Platform$Cmd$none);
+			case 'SendData':
+				return _Utils_Tuple2(
 					model,
-					{url: newUrl}),
-				elm$core$Platform$Cmd$none);
-		} else {
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{submitted: true}),
-				elm$core$Platform$Cmd$none);
+					author$project$Main$sendStuff(
+						elm$json$Json$Encode$string('test')));
+			default:
+				var result = msg.a;
+				if (result.$ === 'Ok') {
+					var value = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{counter: value}),
+						elm$core$Platform$Cmd$none);
+				} else {
+					var error = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								error: elm$json$Json$Decode$errorToString(error)
+							}),
+						elm$core$Platform$Cmd$none);
+				}
 		}
 	});
 var author$project$Main$Change = function (a) {
 	return {$: 'Change', a: a};
 };
+var author$project$Main$SendData = {$: 'SendData'};
 var author$project$Main$UrlSubmitted = {$: 'UrlSubmitted'};
-var elm$core$Basics$identity = function (x) {
-	return x;
-};
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
@@ -4883,11 +4927,11 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 };
 var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
+var elm$html$Html$h2 = _VirtualDom_node('h2');
 var elm$html$Html$img = _VirtualDom_node('img');
 var elm$html$Html$input = _VirtualDom_node('input');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
-var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -4988,7 +5032,6 @@ var elm$core$List$foldr = F3(
 	function (fn, acc, ls) {
 		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
 	});
-var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
@@ -5031,6 +5074,31 @@ var author$project$Main$view = function (model) {
 				_List_fromArray(
 					[
 						elm$html$Html$text('Show image')
+					])),
+				A2(
+				elm$html$Html$button,
+				_List_fromArray(
+					[
+						elm$html$Html$Events$onClick(author$project$Main$SendData)
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('Send some data')
+					])),
+				A2(
+				elm$html$Html$h2,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text(
+						elm$core$String$fromInt(model.counter))
+					])),
+				A2(
+				elm$html$Html$h2,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text(model.error)
 					]))
 			])) : A2(
 		elm$html$Html$div,
@@ -5288,6 +5356,14 @@ var elm$url$Url$fromString = function (str) {
 		A2(elm$core$String$dropLeft, 8, str)) : elm$core$Maybe$Nothing);
 };
 var elm$browser$Browser$element = _Browser_element;
+var elm$json$Json$Decode$andThen = _Json_andThen;
 var author$project$Main$main = elm$browser$Browser$element(
 	{init: author$project$Main$init, subscriptions: author$project$Main$subscriptions, update: author$project$Main$update, view: author$project$Main$view});
-_Platform_export({'Main':{'init':author$project$Main$main(elm$json$Json$Decode$string)(0)}});}(this));
+_Platform_export({'Main':{'init':author$project$Main$main(
+	A2(
+		elm$json$Json$Decode$andThen,
+		function (value) {
+			return elm$json$Json$Decode$succeed(
+				{value: value});
+		},
+		A2(elm$json$Json$Decode$field, 'value', elm$json$Json$Decode$int)))(0)}});}(this));
