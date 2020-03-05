@@ -75,14 +75,14 @@ view model =
         div []
             [ input [ placeholder "Type here", onInput Change ] []
             , button [ onClick UrlSubmitted ] [ text "Show image" ]
-            , button [ onClick SendData ] [ text "Send some data" ]
             , h2 [] [ text <| String.fromInt model.counter ]
             , h2 [] [ text model.error ]
             ]
 
     else
         div []
-            [ img [ id "posenetimg", src model.url ] []
+            [ img [ id "posenetimg", src model.url, attribute "crossorigin" "anonymous" ] []
+            , button [ onClick SendData ] [ text "Send some data" ]
             ]
 
 ---- PROGRAM ----
