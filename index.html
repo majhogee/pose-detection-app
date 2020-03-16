@@ -17,11 +17,6 @@
     flags: { value: counter }
   });
 
-  setInterval(() => {
-    counter += 1;
-    app.ports.receiveStuff.send({ value: counter });
-  }, 1000);
-
   app.ports.sendStuff.subscribe(data => {
     var flipHorizontal = false;
     var imageElement = document.getElementById('posenetimg');
@@ -33,6 +28,7 @@
       return pose;
     }).then(function(pose){
       console.log(pose);
+      app.ports.receiveStuff.send(pose['keypoints']);
     })
   });
   </script>
